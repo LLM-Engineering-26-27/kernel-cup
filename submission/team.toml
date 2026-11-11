@@ -1,0 +1,5 @@
+# Your entry. The leaderboard reads this file at the head of your kcup branch.
+nickname = "change-me"       # 3 to 24 letters, digits, - or _. Shown on the public page.
+division = "unassisted"      # "unassisted" or "assisted". You may move to "assisted", never back.
+language = "cute"            # "cute", "triton" or "cuda"
+publish_code = false         # true: your code is shared with the class after the sessions

@@ -1,0 +1,4 @@
+.kcup/
+__pycache__/
+kcup-*.out
+results/profiles/
