@@ -59,7 +59,7 @@ UC3 is down from 2026-11-23 to about 2026-12-04. You can read the starter code a
 kernel before then, but no jobs will run.
 
 **The check on 2026-12-15** is a look at the leaderboard, not a re-run. Whatever you pushed by
-23:59:59 counts. The instructor reads the kernel and write-up of the best provisional entries
+23:59:59 counts. The instructor reads the kernels of the best provisional entries
 in each division and picks who gets a prize. If UC3 is not back by Monday 2026-12-07, the check
 moves to Tue 2027-01-05, 23:59:59. After the check, nothing changes: keep tinkering until the
 leaderboard closes.
@@ -73,7 +73,7 @@ Each pair declares a division in `submission/team.toml`:
 - **Unassisted.** The course's exercise rule applies. AI assistants (chat models, coding
   agents) may explain things. They may also help with the harness, the plots and profiler
   questions. Your pair writes the kernel.
-- **Assisted.** AI assistants may write code. Your write-up says how you used them.
+- **Assisted.** AI assistants may write code too.
 
 You may move from Unassisted to Assisted at any time, but never back. Once any commit on
 `kcup` declares Assisted, the entry stays Assisted. Nobody can check the declaration, so it is
@@ -143,22 +143,10 @@ Dao-AILab note on memory-bound kernels. You may reuse:
 
 The library kernels are QuACK's kernels in `quack/cross_entropy.py` and `quack/softmax.py`,
 Liger's kernels, and any other library's softmax or cross-entropy kernel. Copying any part of
-them disqualifies the entry. Your write-up cites what you read and what you reused.
+them disqualifies the entry. If you reuse code, say where it comes from in a comment.
 
 The starter is adapted from Bonus 3's softmax kernel, which is adapted from QuACK's
 `quack/softmax.py` (Apache License 2.0, see `LICENSES/QUACK.txt`).
-
-### The write-up
-
-Every ranked entry has `submission/WRITEUP.md`, at most one page. Cover the idea, the profiler
-evidence that led to it, what failed, the numbers, and (in the Assisted division) how you used
-assistants. A write-up counts only if it differs from the template and no line starting with
-`> Replace this` is left. One exception: in the Unassisted division, the line under
-"Assistants" may stay. An entry without a write-up when the leaderboard closes is unranked. The 2026-12-15 check only
-considers entries that have one.
-
-`WRITEUP.md` and `team.toml` are not part of your kernel's hash. Editing them never makes a
-measurement stale.
 
 ### Nicknames
 
@@ -166,11 +154,12 @@ The leaderboard shows your `nickname` from `team.toml`, not your names. Nickname
 compared without regard to case. If two pairs pick the same one, the pair that committed it
 first keeps it. The other pair is shown with a suffix such as `-2` until it renames.
 
+`team.toml` is not part of your kernel's hash, so editing it never makes a measurement stale.
+
 ### Publishing
 
-Staff may share the write-ups of ranked entries in a private repository that course members can
-read. Code is shared only for entries with `publish_code = true` in `team.toml`. Nothing is
-published in the public kit repository.
+Staff may share the code of entries with `publish_code = true` in `team.toml` in a private
+repository that course members can read. Nothing is published in the public kit repository.
 
 ### Fair play
 
@@ -190,8 +179,7 @@ The leaderboard marks an entry unranked if:
 - its harness was changed (`kcup_harness/`, `job.sh`, `pytest.ini`)
 - the census failed
 - its `team.toml` needs a fix, for example a missing nickname
-- its summary % of speed of light is above 105% (not plausible)
-- it has no write-up when the leaderboard closes.
+- its summary % of speed of light is above 105% (not plausible).
 
 ## Quick start
 
@@ -385,7 +373,7 @@ from `team.toml` at the head.
 |---|---|
 | provisional | the newest counted result matches your committed kernel and an unmodified harness |
 | stale | your kernel changed after its newest counted result. The page shows that older score |
-| unranked | the harness was modified, the census failed, `team.toml` needs a fix, no result counts yet, the summary % of speed of light is above 105% (not plausible), or, after the leaderboard closes, the write-up is missing |
+| unranked | the harness was modified, the census failed, `team.toml` needs a fix, no result counts yet, or the summary % of speed of light is above 105% (not plausible) |
 
 Every score on the page is self-measured on UC3. When the leaderboard closes on 2027-03-15, its
 banner says "Closing" for ten minutes. Then it says "Closed", and each row keeps the status its
@@ -408,7 +396,6 @@ its commit dates say.
 |---|---|
 | `submission/kernel.py` | The CuTe starter. Yours to change |
 | `submission/team.toml` | Nickname, division, language, `publish_code` |
-| `submission/WRITEUP.md` | The one-page write-up template |
 | `results/` | The result JSONs and plots you commit |
 | `job.sh` | The SLURM job (harness) |
 | `kcup_harness/` | Reference, tests, benchmark, census, plot (harness) |
