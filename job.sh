@@ -11,7 +11,7 @@
 #   sbatch job.sh profile nsys --shape 2048 128256   (or torch, ncu)
 #   sbatch --partition=gpu_a100_short job.sh test    the tests on an A100 (its timings do not count)
 # Pass SLURM options on the command line, for example sbatch --time=00:25:00 job.sh.
-# This file belongs to the harness: editing it unranks your entry.
+# This file belongs to the harness: editing it unranks your entry on the leaderboard.
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:?submit this with sbatch from your kcup checkout}"
 

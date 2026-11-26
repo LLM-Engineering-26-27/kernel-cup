@@ -4,12 +4,12 @@ Write the fastest correct fused cross-entropy kernel for UC3's H100: the forward
 backward pass over bf16 logits, in one call. You start from a working kernel that is correct
 and slow, find out where its time goes, and make it faster.
 
-The cup is optional and ungraded. It has no effect on your grade or on the exercise gate. The
-prizes are goodies: the top three of the Unassisted division, the winner of the Assisted
-division, and one "best write-up" award that staff choose across both divisions. The winners
-present their kernels at the Christmas sessions of the two tutorials.
+The cup is optional and ungraded. It is not an official course competition and has no effect
+on your grade or on the exercise gate. The leaderboard stays open until Monday 2027-03-15, so you
+can tinker whenever you like. On Tuesday 2026-12-15 the instructor takes an informal look at the
+board, and the best entries at that point get a small prize from Australia.
 
-It builds on Bonus Chapter 3 (GPU kernels and the CuTe DSL). The starter is a CuTe kernel in
+The cup builds on Bonus Chapter 3 (GPU kernels and the CuTe DSL). The starter is a CuTe kernel in
 the style of that chapter's softmax.
 
 ## The task
@@ -33,16 +33,16 @@ def cross_entropy_fwd_bwd(logits: Tensor, targets: Tensor) -> tuple[Tensor, Tens
 - The inputs must be unchanged after the call. The outputs must be new plain `torch.Tensor`s
   with the shapes, dtypes and device above, and `grad` must be contiguous.
 - You may add files under `submission/`. Your kernel must not import anything from the kit
-  outside `submission/`: the staff re-run mounts only that folder.
-- Compiled programs, CUDA graphs, cached `from_dlpack` wrappers and scratch buffers may
-  persist across calls, as long as every call recomputes its outputs from its own inputs.
-  Outputs, and anything computed from an earlier call's inputs, may not persist. Relying on
+  outside `submission/`: the suite refuses such imports.
+- Compiled programs, CUDA graphs, cached `from_dlpack` wrappers and scratch buffers may persist across calls.
+  Every call must still recompute its outputs from its own inputs.
+  Outputs may not persist across calls. Neither may anything computed from an earlier call's inputs. Relying on
   what a scratch buffer still holds from an earlier call is not allowed either.
 
-The correctness suite (`kcup_harness/test_kernel.py`) runs about 1,300 cases before any timing:
-N from 1 to 8,192, V from 2 to 262,144, scaled, shifted and spiked logits, `-inf` entries,
-targets in the first and last column, and ignored rows. The benchmark runs only after the suite
-has passed for your current files.
+The correctness suite (`kcup_harness/test_kernel.py`) runs about 1,300 cases before any timing.
+It covers N from 1 to 8,192, V from 2 to 262,144, scaled, shifted and spiked logits, `-inf`
+entries, targets in the first and last column, and ignored rows. The benchmark runs only after
+every test has passed for your current files.
 
 ## Timeline
 
@@ -50,32 +50,19 @@ All times are Berlin time.
 
 | Date | What happens |
 |---|---|
-| Thu 2026-11-26 | The cup is announced at the Week 7 lecture. The kit and the leaderboard go public |
+| Thu 2026-11-26 | The kit and the leaderboard go public |
 | Fri 2026-12-04 | UC3 is expected back. GPU work starts |
-| Tue 2026-12-15, 23:59:59 | Submissions freeze |
-| Wed 2026-12-16 | Staff re-run every entry |
-| Thu 2026-12-17, 12:15 | Christmas session in Tutorial I. The final ranking is revealed |
-| Fri 2026-12-18, 14:15 | Christmas session in Tutorial II |
+| Tue 2026-12-15, 23:59:59 | Informal check: the instructor looks at the leaderboard |
+| Mon 2027-03-15, 23:59:59 | The leaderboard closes |
 
-UC3 is down from 2026-11-23 to 2026-12-04. You can read the starter and plan your kernel
-before then, but no job runs.
+UC3 is down from 2026-11-23 to about 2026-12-04. You can read the starter code and plan your
+kernel before then, but no jobs will run.
 
-**The late path.** If UC3 is not back by Monday 2026-12-07, or the competition environment is
-broken and not repaired by then, these dates apply instead:
-
-| Date | What happens on the late path |
-|---|---|
-| Tue 2027-01-05, 23:59:59 | Submissions freeze |
-| Wed 2027-01-06 | Staff re-run every entry |
-| Thu 2027-01-07, 12:15 | Reveal in Tutorial I |
-| Fri 2027-01-08, 14:15 | Session in Tutorial II |
-
-**The Christmas sessions** take the first 45 minutes or so of each tutorial. The winner of each
-division gives a talk of about 8 minutes on how the kernel works and how the pair got there.
-Any other ranked pair may give a 2-minute talk. If you want a slot, tell your tutor by
-Wed 2026-12-16 which session you attend. Slots go first come, first served. You present at the
-tutorial you attend. If a winner attends only one tutorial, the other session shows the
-winner's slides and write-up.
+**The check on 2026-12-15** is a look at the leaderboard, not a re-run. Whatever you pushed by
+23:59:59 counts. The instructor reads the kernel and write-up of the best provisional entries
+in each division and picks who gets a prize. If UC3 is not back by Monday 2026-12-07, the check
+moves to Tue 2027-01-05, 23:59:59. After the check, nothing changes: keep tinkering until the
+leaderboard closes.
 
 ## Rules
 
@@ -94,8 +81,8 @@ taken on trust.
 
 ### Languages
 
-The CuTe DSL is the supported language: the kit ships a CuTe starter. Triton, and CUDA C++
-through `torch.utils.cpp_extension.load_inline`, are allowed too, without a starter and
+The CuTe DSL is the supported language: the kit ships a CuTe starter. Triton and CUDA C++
+(through `torch.utils.cpp_extension.load_inline`) are allowed too, but without a starter and
 without staff support. The harness only calls your Python function. Set `language` in
 `team.toml` to `cute`, `triton` or `cuda`.
 
@@ -108,7 +95,8 @@ PyTorch may do three things in your submission:
 - compute on tensors of at most N elements, such as the N per-row losses.
 
 Every other operation that reads or writes an N × V tensor must be one of your own kernels.
-The same holds for an N × k tensor of per-row partials (k > 1) and for a tensor of length V.
+The same rule applies to an N × k tensor of per-row partials (with k > 1) and to a tensor of
+length V.
 PyTorch may allocate them, but not compute on them.
 
 Your submission never calls PyTorch's softmax, log-softmax or cross-entropy, Liger, QuACK, or
@@ -122,7 +110,7 @@ one call on every benchmark shape and fails your entry if:
 - a kernel has a name from a library (the list below)
 - a kernel runs on a stream other than the one the harness called on.
 
-The staff review checks the rest by reading the code.
+Staff also review the code by hand.
 
 ### Kernel names you must not use
 
@@ -139,10 +127,10 @@ The census recognizes library kernels by name. Your own kernel names must not:
 - start with `triton_poi_`, `triton_red_`, `triton_per_`, `triton_for_`, `triton_tem_` or
   `triton_spl_`, or be exactly `triton_`. These are the kernels `torch.compile` generates.
 
-The CuTe DSL names a kernel `kernel_cutlass_`, then its function name, then its arguments. A
-method's first argument is its object, which brings in the names of its module and class. So a
-CuTe kernel method named `kernel`, on a class in a module whose name starts with `quack`, gets
-a name starting with `kernel_cutlass_kernel_quack`. Do not combine those names.
+The CuTe DSL names a kernel `kernel_cutlass_`, then its function name, then its arguments. A method's first argument is the object the method belongs to. So the kernel's name also contains
+the names of that object's module and class. For
+example, a CuTe kernel method named `kernel` on a class in a module whose name starts with
+`quack` gets a name starting with `kernel_cutlass_kernel_quack`. Do not combine those names.
 
 ### Sources and copying
 
@@ -162,91 +150,56 @@ The starter is adapted from Bonus 3's softmax kernel, which is adapted from QuAC
 
 ### The write-up
 
-Every ranked entry has `submission/WRITEUP.md`, at most one page: the idea, the profiler
-evidence that led to it, what failed, the numbers, and in the Assisted division how you used
+Every ranked entry has `submission/WRITEUP.md`, at most one page. Cover the idea, the profiler
+evidence that led to it, what failed, the numbers, and (in the Assisted division) how you used
 assistants. A write-up counts only if it differs from the template and no line starting with
 `> Replace this` is left. One exception: in the Unassisted division, the line under
-"Assistants" may stay. An entry without a write-up at the freeze is unranked.
+"Assistants" may stay. An entry without a write-up when the leaderboard closes is unranked. The 2026-12-15 check only
+considers entries that have one.
 
 `WRITEUP.md` and `team.toml` are not part of your kernel's hash. Editing them never makes a
 measurement stale.
 
 ### Nicknames
 
-The leaderboard shows your `nickname` from `team.toml` and no names. Nicknames are unique,
+The leaderboard shows your `nickname` from `team.toml`, not your names. Nicknames are unique,
 compared without regard to case. If two pairs pick the same one, the pair that committed it
-first keeps it. The other is shown with a suffix such as `-2` until it renames.
+first keeps it. The other pair is shown with a suffix such as `-2` until it renames.
 
 ### Publishing
 
-After the sessions, staff share the write-ups of all ranked entries, and the code of entries
-with `publish_code = true` in `team.toml`, in a private repository that course members can
-read (`kernel-cup-entries`). Nothing is published in the public kit repository.
+Staff may share the write-ups of ranked entries in a private repository that course members can
+read. Code is shared only for entries with `publish_code = true` in `team.toml`. Nothing is
+published in the public kit repository.
 
-### The staff re-run
+### Fair play
 
-Your own measurements fill the provisional leaderboard. The final ranking comes from a staff
-re-run of every frozen entry on UC3:
-
-1. Staff read every kernel before it runs. An entry that caches outputs across calls, or
-   tampers with the harness from inside the process, is unranked. Tampering includes
-   importing `kcup_harness`, patching `torch.cuda.Event`, `sys.modules` or torch functions,
-   and starting threads or subprocesses. Compilers' own processes are fine. Your own code
-   reads no environment variables and no files outside `submission/`. Compilers' own caches
-   are fine.
-2. The correctness suite runs with a secret seed, so a kernel cannot be tuned to the public
-   test values. It runs with empty compile caches, on a node that may not have run the kit
-   before, and **it must finish within 540 s**, the container's start included. A suite that
-   is still running at 540 s leaves the entry unranked. If your kernel compiles once per
-   shape, count the compiles: the suite has 56 shapes.
-3. Three benchmark rounds time each entry against the eager reference and the copy (see
-   [The score](#the-score)), in a fresh random order each round. Your final score is the
-   median of your three round scores. Each round's run of your entry has a time limit: twice
-   the sum of your newest full job's benchmark time (at least 60 s) and 30 s for the
-   container. A round fails if its run crashes, if the check of your outputs on fresh inputs
-   after the timing fails, or if it is still running at its limit.
-
-**Time your suite as the re-run does.** The last line of the tests in a job log gives the
-suite's time (`… passed in …s`). The container's start adds up to about 30 s. The re-run
-starts these caches empty: Triton's, Inductor's, PyTorch's C++ extensions, the CuTe DSL's,
-everything under `XDG_CACHE_HOME`, and the CUDA driver's in a fresh home folder. To do the
-same, point them at empty folders for one test job, from your `kcup` folder:
-
-```bash
-rm -rf .kcup/cold
-mkdir -p .kcup/cold/triton .kcup/cold/inductor .kcup/cold/extensions .kcup/cold/cute_dsl .kcup/cold/cache .kcup/cold/nv
-sbatch --export=ALL,TRITON_CACHE_DIR=$PWD/.kcup/cold/triton,TORCHINDUCTOR_CACHE_DIR=$PWD/.kcup/cold/inductor,TORCH_EXTENSIONS_DIR=$PWD/.kcup/cold/extensions,CUTE_DSL_CACHE_DIR=$PWD/.kcup/cold/cute_dsl,XDG_CACHE_HOME=$PWD/.kcup/cold/cache,CUDA_CACHE_PATH=$PWD/.kcup/cold/nv job.sh test
-```
-
-`job.sh` stays as it is: the options go on the `sbatch` command line. `.kcup/` is ignored by
-git, so the folders never reach your commits.
-
-**Ties.** Ties are formed within each division. An entry's spread is the gap between its
-highest and lowest round score, divided by its median. Two neighbouring entries tie when their
-medians are equal, or when the gap between their medians, divided by the larger median, is
-below the larger of their two spreads. A chain of such neighbours shares one rank, the best of
-them. A tie across a prize boundary gives every tied entry the prize.
+There is no staff re-run: the leaderboard shows your own measurements, and the check trusts them.
+At the check, the instructor reads the kernels of the best entries. An entry that caches outputs
+across calls, or tampers with the harness from inside the process, gets no prize. Tampering
+includes importing `kcup_harness`, patching `torch.cuda.Event`, `sys.modules` or torch functions,
+and starting threads or subprocesses. Compilers' own processes are fine. Your own code must not
+read environment variables or files outside `submission/`. Compilers' own caches are fine. The
+same applies to a library softmax or cross-entropy call, copied library kernel code, or a break of
+the PyTorch rule above.
 
 ### When an entry is unranked
 
-An entry is not in the final ranking if:
+The leaderboard marks an entry unranked if:
 
-- the staff review finds a library call, copied library kernel code, outputs cached across
-  calls, or tampering
-- it breaks the PyTorch rule above, in the review or in the census of any round
-- its harness (`kcup_harness/`, `job.sh`, `pytest.ini`) differs from a published kit version
-- it fails the staff re-run's correctness suite, or the suite does not finish within 540 s
-- a benchmark round fails, or its summary % of speed of light is above 105% (not plausible)
+- its harness was changed (`kcup_harness/`, `job.sh`, `pytest.ini`)
+- the census failed
 - its `team.toml` needs a fix, for example a missing nickname
-- it has no write-up at the freeze.
+- its summary % of speed of light is above 105% (not plausible)
+- it has no write-up when the leaderboard closes.
 
 ## Quick start
 
 You need the UC3 setup from the course's `CLUSTER.md`: an account, the workspace `lme` and
 your pair's repository cloned into it.
 
-**1. Create the `kcup` branch** (one partner, once). It is a branch of your pair repository
-with no history in common with `main`. A second folder beside your clone keeps `main`
+**1. Create the `kcup` branch** (one partner, once). This branch lives in your pair repository
+but has no history in common with `main`. A second folder beside your clone keeps `main`
 checked out for the weekly exercises. Log in to UC3 and run:
 
 ```bash
@@ -293,7 +246,7 @@ cd kcup
 ```
 
 **2. Name your entry.** One partner edits `submission/team.toml`: a nickname, your division
-and your language. Then commit and push it:
+and your language. Then commit and push:
 
 ```bash
 git add submission/team.toml
@@ -303,7 +256,7 @@ git push
 
 **Working as a pair.** Both partners push to `kcup`. Run `git pull --no-rebase --no-edit`
 before every push, so your partner's commits are merged in. Result files never conflict,
-because each job writes a new file named after its time and job id. Let one partner edit
+because each job writes a new file named after its time and job id. Let only one partner edit
 `team.toml`, so the two of you never change it at the same time.
 
 **3. Run the tests.** From the `kcup` folder:
@@ -323,11 +276,11 @@ environment from disk and takes up to a minute longer.
 sbatch job.sh
 ```
 
-It runs the tests, then the benchmark on all 12 shapes, then the plot. It prints a table of
+This runs the tests, then the benchmark on all 12 shapes, then the plot. It prints a table of
 times and your score, and writes `results/<UTC time>-<job id>.json` and a `.png` with the
 same name.
 
-**5. Submit the result.** Commit the JSON (the plot too, if you like) and push:
+**5. Submit the result.** Commit the JSON (and the plot too, if you like) and push:
 
 ```bash
 git add results/
@@ -367,12 +320,13 @@ Two things make a measurement not count:
 | `sbatch job.sh profile ncu --shape 2048 50304` | An Nsight Compute report |
 | `sbatch --partition=gpu_a100_short job.sh test` | The tests on an A100, when the H100 queue is long |
 
-**Time.** A job that asks for less time starts sooner, so the default is 15 minutes, and the
-starter's full job takes a few minutes. If a job needs longer, for example because your kernel
-compiles once per shape, ask for more on the command line: `sbatch --time=00:25:00 job.sh`.
+**Time.** A job that asks for less time starts sooner, so the default is 15 minutes. The
+starter's full job takes a few minutes. If a job needs longer (for example because your kernel
+compiles once per shape), ask for more on the command line: `sbatch --time=00:25:00 job.sh`.
 `gpu_h100_short` allows at most 30 minutes.
 
-**Never edit `job.sh`.** It is part of the harness, and a changed harness unranks the entry.
+**Never edit `job.sh`.** It is part of the harness, and a changed harness unranks the entry on the
+leaderboard.
 Pass SLURM options on the `sbatch` command line instead.
 
 **A100s** are for `test` only. They lack the H100's sm_90 features, so a kernel that uses them
@@ -388,7 +342,7 @@ The benchmark grid has 12 shapes:
 | N = 2,048 | ✓ | ✓ | ✓ | ✓ |
 | N = 8,192 | ✓ | ✓ | ✓ | ✓ |
 
-N is the number of tokens. V = 8,192 is the course model's vocabulary, and the others are
+N is the number of tokens. V = 8,192 is the course model's vocabulary. The others are
 GPT-2 (padded), Llama 3 and Gemma 3. The benchmark logits are standard normal, with random
 targets and no ignored rows.
 
@@ -398,60 +352,53 @@ targets and no ignored rows.
   therefore does not change your score.
 - **Score**: the geometric mean of the 12 speedups. Doubling your speed on any one shape
   counts the same.
-- **% of speed of light per shape**: how close you are to the hardware limit. A call must read
-  the logits once, write the gradient once and read the targets: 4·N·V + 8·N bytes. Divide
-  these ideal bytes by your time. The result, as a share of the bandwidth of the copy (a
-  plain `out.copy_(logits)`, timed in the same job), is the % of speed of light. The
-  leaderboard's summary column is its geometric mean over the shapes.
+- **% of speed of light per shape**: how close you are to the hardware limit. A call must read the logits once (2·N·V bytes in bf16), write the gradient once (2·N·V bytes in
+  bf16) and read the targets (8·N bytes in int64). The total is 4·N·V + 8·N bytes. Your
+  % of speed of light is these ideal bytes divided by your time, expressed as a share of
+  the bandwidth of the copy (a plain `out.copy_(logits)`, timed in the same job). The
+  leaderboard's summary column is the geometric mean over the shapes.
 
-Each timing is the median of five loops of back-to-back calls, on input buffers that rotate
-so they do not stay in the L2 cache. After the last loop, the outputs on fresh inputs are
+Each timing is the median of five loops of back-to-back calls. The input buffers rotate so
+they do not stay in the L2 cache. After the last loop, the outputs on fresh inputs are
 checked again.
 
 The job also times comparators that never rank: PyTorch's bf16 `F.cross_entropy` with its
 backward, `torch.compile` of the reference, QuACK's cross-entropy, the starter, and the copy.
-They are all in the printed table and the JSON.
+They all appear in the printed table and the JSON.
 
 **The plot** (`results/<UTC time>-<job id>.png`) has one panel per N. The x-axis is V, the
 y-axis is % of speed of light, and 100% is drawn as the ceiling. Your kernel is the
 highlighted line. The muted lines are the starter, the eager reference and QuACK.
 `python -m kcup_harness.plot --all results/<file>.json` adds `F.cross_entropy` and
-`torch.compile`. It also runs on a laptop: from a checkout of your `kcup` branch, because it
-imports `kcup_harness`, with PyTorch and matplotlib installed.
+`torch.compile`. This command also runs on a laptop: from a checkout of your `kcup` branch
+(because it imports `kcup_harness`), with PyTorch and matplotlib installed.
 
 ## The leaderboard
 
 <https://kernelcup.strueber.dev>
 
-Every 30 minutes the leaderboard reads the head of each pair's `kcup` branch. It takes the
-newest results JSON there that covers the whole grid, ran on an H100 and measured committed
-files. Partial, A100 and uncommitted runs are skipped. It reads the nickname and the language
+Every 30 minutes the leaderboard reads the head of each pair's `kcup` branch. It takes the newest results JSON that covers the whole grid, that ran on an H100, and that measured
+committed files. Partial, A100 and uncommitted runs are skipped. It reads the nickname and the language
 from `team.toml` at the head.
 
 | Status | Meaning |
 |---|---|
 | provisional | the newest counted result matches your committed kernel and an unmodified harness |
 | stale | your kernel changed after its newest counted result. The page shows that older score |
-| unranked | the harness was modified, the census failed, `team.toml` needs a fix, no result counts yet, the summary % of speed of light is above 105% (not plausible), or, after the freeze, the write-up is missing |
+| unranked | the harness was modified, the census failed, `team.toml` needs a fix, no result counts yet, the summary % of speed of light is above 105% (not plausible), or, after the leaderboard closes, the write-up is missing |
 
-For ten minutes after the freeze the banner says "Freezing". Then it says "Frozen", and each
-row keeps the status its on-time head had. Until the reveal, every score on the page is
-self-measured on UC3. At the reveal the final ranking replaces them: a ranked row says
-"Final", or "Final, prize", and an entry the re-run did not rank says "not in the final
-ranking".
-
-**What counts at the freeze** is the head of `kcup` at 23:59:59 on the freeze day, as GitHub
-recorded your pushes. A push after the freeze does not count, whatever its commit dates say.
-Push your final kernel, its JSON and the write-up before then.
+Every score on the page is self-measured on UC3. When the leaderboard closes on 2027-03-15, its
+banner says "Closing" for ten minutes. Then it says "Closed", and each row keeps the status its
+branch head had at 23:59:59, as GitHub recorded your pushes. A push after that does not count, whatever
+its commit dates say.
 
 ## Branch rules
 
 - `kcup` lives in your pair repository and shares no history with `main`. Pushing to it starts
   no grading.
-- Never force-push or delete `kcup` after the freeze. The staff re-run fetches your frozen
-  commit.
+- Never force-push or delete `kcup`: the leaderboard reads its history.
 - Change only `submission/` and `results/`. Editing `kcup_harness/`, `job.sh` or `pytest.ini`
-  unranks the entry.
+  unranks the entry on the leaderboard.
 - If staff publish a new kit version, merge it into `kcup`, push, and run the full job again:
   `git pull --no-rebase --no-edit https://github.com/LLM-Engineering-26-27/kernel-cup main`.
 
